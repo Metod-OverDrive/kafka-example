@@ -1,0 +1,80 @@
+version: "3.8"
+
+volumes:
+  kafka_0_data:
+    driver: local
+  kafka_1_data:
+    driver: local
+  kafka_2_data:
+    driver: local
+
+services:
+  kafka-0:
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka-0:9052,1@kafka-1:9052,2@kafka-2:9052
+      - KAFKA_KRAFT_CLUSTER_ID=PVjHlx7ESeesq55jeB6Efw
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9051,CONTROLLER://:9052,EXTERNAL://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9051,EXTERNAL://localhost:9092
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_JMX_PORT=19101
+
+    volumes:
+      - kafka_0_data:/bitnami/kafka
+  kafka-1:
+    image: docker.io/bitnami/kafka:latest
+    ports:
+      - "9093:9093"
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka-0:9052,1@kafka-1:9052,2@kafka-2:9052
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_KRAFT_CLUSTER_ID=PVjHlx7ESeesq55jeB6Efw
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9051,CONTROLLER://:9052,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-1:9051,EXTERNAL://localhost:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_JMX_PORT=19101
+
+    volumes:
+      - kafka_1_data:/bitnami/kafka
+  kafka-2:
+    image: docker.io/bitnami/kafka:latest
+    ports:
+      - "9094:9094"
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka-0:9052,1@kafka-1:9052,2@kafka-2:9052
+      - KAFKA_KRAFT_CLUSTER_ID=PVjHlx7ESeesq55jeB6Efw
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9051,CONTROLLER://:9052,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-2:9051,EXTERNAL://localhost:9094
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_JMX_PORT=19101
+
+    volumes:
+      - kafka_2_data:/bitnami/kafka
+
+  ui:
+    image: provectuslabs/kafka-ui:v0.4.0
+    ports:
+      - "8090:8090"
+    environment:
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-0:9051,kafka-1:9051,kafka-2:9051
+      - KAFKA_CLUSTERS_0_NAME=kraft
+    depends_on:
+      - kafka-0
+      - kafka-1
+      - kafka-2
