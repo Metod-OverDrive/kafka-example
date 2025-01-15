@@ -1,0 +1,22 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: kafka-server
+  kafka:
+    bootstrap-servers: localhost:9092, localhost:9094
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 10
+      acks: 1
+      properties:
+        retry.backoff.ms: 500
+        delivery.timeout.ms: 7500
+        linger.ms: 0
+        request.timeout.ms: 5000
+        enable.idempotence: false # Can be "true" if "acks" == "all" and "max.in.flight" <= "5"
+        max.in.flight.requests.per.connection: 5
